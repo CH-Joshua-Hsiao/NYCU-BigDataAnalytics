@@ -1,0 +1,15 @@
+# Model weights and run outputs (large; keep results CSVs by copying them out explicitly)
+outputs/
+*.safetensors
+*.pt
+*.bin
+
+# Python / Jupyter
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+.env
+
+# Temporary run copies of the notebook
+Assignment1/_run_*.ipynb
+BigData_Assignment 1.pptx

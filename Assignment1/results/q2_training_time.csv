@@ -1,0 +1,3 @@
+,Fine-Tuned LLM (RANK = 16),Fine-Tuned LLM (RANK = 64),Fine-Tuned LLM (RANK = 256)
+Training Time (min.),36.03,38.77,63.96
+Trainable Parameters,11272192.00,45088768.00,180355072.00

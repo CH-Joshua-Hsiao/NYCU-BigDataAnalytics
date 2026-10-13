@@ -1,0 +1,3 @@
+,Original LLM,Fine-Tuned LLM (RANK = 16),Fine-Tuned LLM (RANK = 64),Fine-Tuned LLM (RANK = 256)
+GSM8K,3.4,15.6,20.7,27.3
+MATH,0.1,3.7,4.8,5.4
