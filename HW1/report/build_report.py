@@ -18,7 +18,7 @@ ROOT = HERE.parent
 RESULTS = ROOT / 'results'
 Q4_FIGS = ROOT / 'outputs' / 'q4'
 NAME = 'Asg1_413551034'
-GITHUB = 'https://github.com/CH-Joshua-Hsiao/NYCU-BigDataAnalytics/tree/main/Assignment1'
+GITHUB = 'https://github.com/CH-Joshua-Hsiao/NYCU-BigDataAnalytics/tree/main/HW1'
 
 doc = Document()
 sec = doc.sections[0]

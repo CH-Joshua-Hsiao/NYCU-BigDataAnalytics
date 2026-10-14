@@ -11,5 +11,5 @@ __pycache__/
 .env
 
 # Temporary run copies of the notebook
-Assignment1/_run_*.ipynb
-BigData_Assignment 1.pptx
+HW*/_run_*.ipynb
+*.pptx
