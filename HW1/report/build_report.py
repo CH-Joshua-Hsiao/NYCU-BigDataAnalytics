@@ -104,9 +104,8 @@ t = para('Assignment 1: Analysis of SVD for Fine-Tuning LLMs', size=13, align=WD
 t.runs[0].bold = True
 para('蕭至恆 (Student ID 413551034)', align=WD_ALIGN_PARAGRAPH.CENTER, after=0)
 para('GitHub: ' + GITHUB, align=WD_ALIGN_PARAGRAPH.CENTER, after=4)
-para('I fine-tuned Llama-3.2-1B with PiSSA on 25,000 MetaMathQA samples (1 epoch, learning rate 2e-5, '
-     'batch size 128, FP16, all 7 projection layers). I tested on 1,000 GSM8K and 1,000 MATH questions. All runs used '
-     'one RTX 3090 (24 GB) on my own computer, with micro-batch 4 and 32 accumulation steps. The SVD step ran on the CPU.',
+para('All runs used one RTX 3090 (24 GB) on my own computer, with micro-batch 4 and 32 accumulation steps. '
+     'The SVD step ran on the CPU.',
      bold_prefix='Setup: ', after=2)
 
 # ---------------------------------------------------------------- Q1
