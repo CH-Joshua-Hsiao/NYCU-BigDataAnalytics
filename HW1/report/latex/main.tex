@@ -3,7 +3,7 @@
 % pdfLaTeX also works: the name is then typeset with the CJKutf8 package.
 \documentclass[10pt,a4paper]{article}
 
-\usepackage[a4paper,left=1.8cm,right=1.8cm,top=1.5cm,bottom=1.5cm]{geometry}
+\usepackage[a4paper,margin=2cm]{geometry}
 \usepackage{iftex}
 \ifXeTeX
   \usepackage{xeCJK}
@@ -17,51 +17,39 @@
 \fi
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
-\usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{array}
 \usepackage{enumitem}
-\usepackage{xcolor}
-\usepackage{titlesec}
 \usepackage{caption}
 \usepackage[hidelinks]{hyperref}
 
-\definecolor{headblue}{HTML}{1F3A68}
-\titleformat{\section}{\large\bfseries\color{headblue}}{}{0pt}{}[\vspace{-0.6ex}{\color{headblue}\titlerule}]
-\titlespacing*{\section}{0pt}{1.2ex}{0.8ex}
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{2pt}
-\setlist[itemize]{leftmargin=1.2em,itemsep=1pt,topsep=2pt,parsep=0pt}
-\setlength{\abovecaptionskip}{2pt}
-\setlength{\belowcaptionskip}{0pt}
-\setlength{\textfloatsep}{6pt}
-\setlength{\intextsep}{6pt}
+\setlength{\parskip}{3pt}
+\setlist[itemize]{itemsep=1pt,topsep=2pt}
 \newcolumntype{C}{>{\centering\arraybackslash}X}
-\pagestyle{empty}
 
 \begin{document}
 
 \begin{center}
-  {\Large\bfseries Assignment 1: Analysis of SVD for Fine-Tuning LLMs}\\[2pt]
-  \cjkname{蕭至恆} (Student ID 413551034) \quad$\cdot$\quad Big Data Analytics Techniques and Applications, Fall 2026\\
+  {\large\bfseries Assignment 1: Analysis of SVD for Fine-Tuning LLMs}\\[4pt]
+  \cjkname{蕭至恆} (Student ID 413551034) \\
   GitHub: \url{https://github.com/CH-Joshua-Hsiao/NYCU-BigDataAnalytics/tree/main/HW1}
 \end{center}
-\vspace{-4pt}
-{\small\itshape Setup: I fine-tuned Llama-3.2-1B with PiSSA on 25,000 MetaMathQA samples (1 epoch, learning rate
+\textbf{Setup:} I fine-tuned Llama-3.2-1B with PiSSA on 25,000 MetaMathQA samples (1 epoch, learning rate
 $2\times10^{-5}$, batch size 128, FP16, all 7 projection layers). I tested on 1,000 GSM8K and 1,000 MATH questions.
 All runs used one RTX 3090 (24 GB) on my own computer, with micro-batch 4 and 32 accumulation steps. The SVD step
-ran on the CPU.\par}
+ran on the CPU.
 
 % ------------------------------------------------------------------ Q1
-\section*{Question 1: Accuracy of the original and fine-tuned models}
+\subsection*{Question 1: Accuracy of the original and fine-tuned models}
 \begin{center}\small
-\begin{tabularx}{\textwidth}{l C C C C}
-  \toprule
+\begin{tabularx}{\textwidth}{|l|C|C|C|C|}
+  \hline
   \textbf{Accuracy} & \textbf{Original LLM} & \textbf{Fine-Tuned (RANK = 16)} & \textbf{Fine-Tuned (RANK = 64)} & \textbf{Fine-Tuned (RANK = 256)} \\
-  \midrule
-  \textbf{GSM8K} & 3.4\% & 15.6\% & 20.7\% & 27.3\% \\
+  \hline
+  \textbf{GSM8K} & 3.4\% & 15.6\% & 20.7\% & 27.3\% \\ \hline
   \textbf{MATH}  & 0.1\% & 3.7\%  & 4.8\%  & 5.4\%  \\
-  \bottomrule
+  \hline
 \end{tabularx}
 \end{center}
 
@@ -86,13 +74,13 @@ ran on the CPU.\par}
 \end{itemize}
 
 \begin{center}\small
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.6cm} C C C C}
-  \toprule
+\begin{tabularx}{\textwidth}{|p{3.6cm}|C|C|C|C|}
+  \hline
   \textbf{Clear final answers (accuracy of them)} & \textbf{Original LLM} & \textbf{Fine-Tuned (RANK = 16)} & \textbf{Fine-Tuned (RANK = 64)} & \textbf{Fine-Tuned (RANK = 256)} \\
-  \midrule
-  \textbf{GSM8K} & 37 (13.5\%) & 951 (16.4\%) & 957 (21.6\%) & 954 (28.6\%) \\
+  \hline
+  \textbf{GSM8K} & 37 (13.5\%) & 951 (16.4\%) & 957 (21.6\%) & 954 (28.6\%) \\ \hline
   \textbf{MATH}  & 41 (2.4\%)  & 452 (8.2\%)  & 523 (9.2\%)  & 547 (9.9\%)  \\
-  \bottomrule
+  \hline
 \end{tabularx}
 \end{center}
 
@@ -105,15 +93,15 @@ ran on the CPU.\par}
 \end{itemize}
 
 % ------------------------------------------------------------------ Q2
-\section*{Question 2: Training time}
+\subsection*{Question 2: Training time}
 \begin{center}\small
-\begin{tabularx}{0.9\textwidth}{l C C C}
-  \toprule
+\begin{tabularx}{0.9\textwidth}{|l|C|C|C|}
+  \hline
   & \textbf{Fine-Tuned (RANK = 16)} & \textbf{Fine-Tuned (RANK = 64)} & \textbf{Fine-Tuned (RANK = 256)} \\
-  \midrule
-  \textbf{Training Time (min.)} & 36.0   & 38.8   & 64.0    \\
+  \hline
+  \textbf{Training Time (min.)} & 36.0   & 38.8   & 64.0    \\ \hline
   \textbf{Trainable Parameters} & 11.3 M & 45.1 M & 180.4 M \\
-  \bottomrule
+  \hline
 \end{tabularx}
 \end{center}
 
@@ -133,17 +121,17 @@ ran on the CPU.\par}
 \end{itemize}
 
 % ------------------------------------------------------------------ Q3
-\section*{Question 3: Fine-tuning different singular-value ranges (rank 16)}
+\subsection*{Question 3: Fine-tuning different singular-value ranges (rank 16)}
 \begin{center}
   \includegraphics[width=0.85\textwidth]{figures/q3_components.png}\\[2pt]
   \small
-  \begin{tabularx}{0.85\textwidth}{l C C C C}
-    \toprule
+  \begin{tabularx}{0.85\textwidth}{|l|C|C|C|C|}
+    \hline
     \textbf{Range} & \textbf{Top 16} & \textbf{From 25\%} & \textbf{From 50\%} & \textbf{Bottom 16} \\
-    \midrule
-    \textbf{GSM8K} & 15.6\% & 12.3\% & 11.8\% & 11.5\% \\
+    \hline
+    \textbf{GSM8K} & 15.6\% & 12.3\% & 11.8\% & 11.5\% \\ \hline
     \textbf{MATH}  & 3.7\%  & 3.2\%  & 2.1\%  & 2.4\%  \\
-    \bottomrule
+    \hline
   \end{tabularx}
 \end{center}
 
@@ -173,16 +161,16 @@ ran on the CPU.\par}
 \end{itemize}
 
 % ------------------------------------------------------------------ Q4
-\section*{Question 4: SVD of q\_proj in the original model (layers 0, 7, 15)}
+\subsection*{Question 4: SVD of q\_proj in the original model (layers 0, 7, 15)}
 \begin{center}\small
-\begin{tabularx}{0.9\textwidth}{>{\raggedright\arraybackslash}p{5.2cm} C C C}
-  \toprule
+\begin{tabularx}{0.9\textwidth}{|p{5.2cm}|C|C|C|}
+  \hline
   & \textbf{Layer 0} & \textbf{Layer 7} & \textbf{Layer 15} \\
-  \midrule
-  \textbf{Minimum Target Rank for query projection weights ($\geq$ 50\% energy)} & \textbf{62} & \textbf{120} & \textbf{84} \\
-  $\sigma_1$ / $\sigma_{16}$                        & 31.4 / 5.7 & 10.3 / 4.2 & 12.9 / 4.7 \\
+  \hline
+  \textbf{Minimum Target Rank for query projection weights ($\geq$ 50\% energy)} & \textbf{62} & \textbf{120} & \textbf{84} \\ \hline
+  $\sigma_1$ / $\sigma_{16}$                        & 31.4 / 5.7 & 10.3 / 4.2 & 12.9 / 4.7 \\ \hline
   Energy in top 16 / top 200                        & 34.8\% / 71.2\% & 15.4\% / 63.5\% & 21.0\% / 68.8\% \\
-  \bottomrule
+  \hline
 \end{tabularx}
 \end{center}
 
@@ -194,7 +182,7 @@ ran on the CPU.\par}
   \includegraphics[width=0.49\textwidth]{figures/layer7_cumulative_energy.png}\\[2pt]
   \includegraphics[width=0.49\textwidth]{figures/layer15_singular_values.png}\hfill
   \includegraphics[width=0.49\textwidth]{figures/layer15_cumulative_energy.png}
-  \caption*{\small\itshape Left: singular value magnitude (bar chart). Right: cumulative energy (line chart).
+  \caption*{Left: singular value magnitude (bar chart). Right: cumulative energy (line chart).
   Only the first 200 of 2,048 singular values are shown. Energy $=\sum_{i\le r}\sigma_i^2 / \sum_i \sigma_i^2$.
   The dashed line is 50\%.}
 \end{figure}

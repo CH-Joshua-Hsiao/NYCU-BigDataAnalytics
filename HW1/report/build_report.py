@@ -9,9 +9,8 @@ import pandas as pd
 from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Cm, Pt, RGBColor
+from docx.shared import Cm, Pt
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -23,9 +22,9 @@ GITHUB = 'https://github.com/CH-Joshua-Hsiao/NYCU-BigDataAnalytics/tree/main/HW1
 doc = Document()
 sec = doc.sections[0]
 sec.page_width, sec.page_height = Cm(21.0), Cm(29.7)
-sec.left_margin = sec.right_margin = Cm(1.8)
-sec.top_margin = sec.bottom_margin = Cm(1.5)
-TEXT_WIDTH = Cm(21.0 - 3.6)
+sec.left_margin = sec.right_margin = Cm(2.0)
+sec.top_margin = sec.bottom_margin = Cm(2.0)
+TEXT_WIDTH = Cm(21.0 - 4.0)
 
 normal = doc.styles['Normal']
 normal.font.name = 'Calibri'
@@ -55,17 +54,10 @@ def heading(text):
     p = doc.add_paragraph()
     r = p.add_run(text)
     r.bold = True
-    r.font.size = Pt(11.5)
-    r.font.color.rgb = RGBColor(0x1F, 0x3A, 0x68)
+    r.font.size = Pt(11)
     p.paragraph_format.space_before = Pt(6)
     p.paragraph_format.space_after = Pt(2)
     p.paragraph_format.keep_with_next = True
-    border = OxmlElement('w:pBdr')
-    bottom = OxmlElement('w:bottom')
-    for k, v in {'w:val': 'single', 'w:sz': '4', 'w:space': '1', 'w:color': '1F3A68'}.items():
-        bottom.set(qn(k), v)
-    border.append(bottom)
-    p._p.get_or_add_pPr().append(border)
 
 
 def bullet(text, bold_prefix=None):
@@ -75,15 +67,6 @@ def bullet(text, bold_prefix=None):
     p.add_run(text)
     p.paragraph_format.space_after = Pt(1)
     return p
-
-
-def shade(cell, hex_color):
-    tc_pr = cell._tc.get_or_add_tcPr()
-    shd = OxmlElement('w:shd')
-    shd.set(qn('w:val'), 'clear')
-    shd.set(qn('w:color'), 'auto')
-    shd.set(qn('w:fill'), hex_color)
-    tc_pr.append(shd)
 
 
 def table(header, rows, col_widths_cm):
@@ -102,8 +85,6 @@ def table(header, rows, col_widths_cm):
             r.font.size = Pt(9)
             if i == 0 or j == 0:
                 r.bold = True
-            if i == 0:
-                shade(cell, 'DCE6F2')
     doc.add_paragraph().paragraph_format.space_after = Pt(0)
     return t
 
@@ -119,16 +100,14 @@ if (q1.shape[1] < 4 or len(q3) < 4) and '--draft' not in sys.argv:
     sys.exit('Results incomplete: run all ranks and Q3 components, then collect_results.py')
 
 # ---------------------------------------------------------------- title
-t = para('Assignment 1: Analysis of SVD for Fine-Tuning LLMs', size=15, align=WD_ALIGN_PARAGRAPH.CENTER, after=0)
+t = para('Assignment 1: Analysis of SVD for Fine-Tuning LLMs', size=13, align=WD_ALIGN_PARAGRAPH.CENTER, after=0)
 t.runs[0].bold = True
-para('蕭至恆 (Student ID 413551034)  ·  Big Data Analytics Techniques and Applications, Fall 2026',
-     size=10, align=WD_ALIGN_PARAGRAPH.CENTER, after=0)
-p = para('GitHub: ', size=10, align=WD_ALIGN_PARAGRAPH.CENTER, after=2)
-p.add_run(GITHUB).font.size = Pt(10)
-para('Setup: I fine-tuned Llama-3.2-1B with PiSSA on 25,000 MetaMathQA samples (1 epoch, learning rate 2e-5, '
+para('蕭至恆 (Student ID 413551034)', align=WD_ALIGN_PARAGRAPH.CENTER, after=0)
+para('GitHub: ' + GITHUB, align=WD_ALIGN_PARAGRAPH.CENTER, after=4)
+para('I fine-tuned Llama-3.2-1B with PiSSA on 25,000 MetaMathQA samples (1 epoch, learning rate 2e-5, '
      'batch size 128, FP16, all 7 projection layers). I tested on 1,000 GSM8K and 1,000 MATH questions. All runs used '
      'one RTX 3090 (24 GB) on my own computer, with micro-batch 4 and 32 accumulation steps. The SVD step ran on the CPU.',
-     size=9, italic=True, after=2)
+     bold_prefix='Setup: ', after=2)
 
 # ---------------------------------------------------------------- Q1
 heading('Question 1: Accuracy of the original and fine-tuned models')
@@ -243,7 +222,7 @@ for i, layer in enumerate([0, 7, 15]):
         p.paragraph_format.space_after = Pt(0)
         p.add_run().add_picture(str(Q4_FIGS / f'layer{layer}_{kind}.png'), width=Cm(8.4))
 para('Left: singular value magnitude (bar chart). Right: cumulative energy (line chart). Only the first 200 of 2,048 '
-     'singular values are shown. Energy = Σσᵢ² / Σσ². The dashed line is 50%.', size=8.5, italic=True,
+     'singular values are shown. Energy = Σσᵢ² / Σσ². The dashed line is 50%.', size=9,
      align=WD_ALIGN_PARAGRAPH.CENTER, after=2)
 
 bullet('All three layers have a similar shape. There are a few large singular values at the beginning (σ1 is about '
