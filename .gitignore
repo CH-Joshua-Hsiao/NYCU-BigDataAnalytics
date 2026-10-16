@@ -13,3 +13,6 @@ __pycache__/
 # Temporary run copies of the notebook
 HW*/_run_*.ipynb
 *.pptx
+
+# Report build script (kept local only)
+HW*/report/build_report.py
