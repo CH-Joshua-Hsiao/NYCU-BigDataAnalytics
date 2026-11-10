@@ -1,0 +1,16 @@
+# Core data + GBDT (CPU-friendly)
+pandas==3.1.1
+pyarrow==26.0.1
+numpy==2.4.6
+scikit-learn==1.9.1
+lightgbm==4.7.0
+matplotlib==3.11.2
+
+# GNN (optional; used by src/gnn.py). CUDA build:
+#   pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu121
+# CPU-only build:
+#   pip install torch==2.5.1
+torch==2.5.1
+
+# Graphviz Python binding is NOT required: tools/schema_graph_mpl.py renders the
+# schema graph with matplotlib. tools/schema_graph.py also emits a .dot for Graphviz.

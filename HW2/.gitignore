@@ -1,0 +1,25 @@
+# Large data — not committed (reproducible via tools/download_raw.sh + preprocess.py)
+raw/
+data/
+starter/
+
+# Report build scratch + bundled Graphviz binary (schema rendered via matplotlib)
+report_build/qa/
+report_build/template.pptx
+# keep only the copies at HW2 root, not the duplicates under report_build/
+report_build/Asg2_413551034.pdf
+report_build/Asg2_413551034.pptx
+tools/graphviz/
+*.log
+artifacts/_*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# OS / editor
+.DS_Store
+Thumbs.db
