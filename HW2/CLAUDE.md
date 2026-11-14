@@ -20,7 +20,10 @@ README GH-Archive acknowledgment is **1%**; the **video + slides answering 4 que
 reproducible (pinned deps, fixed seeds, documented window). AI-generated video = 0; the user
 records the video.
 
-Deadline: 2026-11-21 23:55. **Today in-session was 2026-11-10.**
+Deadline: 2026-11-21 23:55. **This handoff was last updated 2026-11-14.** Data currently exists
+only to ~11-14, so the test week is still in the future (see §7 item 1).
+
+Public repo (slides + README point here): <https://github.com/CH-Joshua-Hsiao/NYCU-BigDataAnalytics/tree/main/HW2>.
 
 ## 2. Rebuild what is git-ignored (do this first in a fresh clone)
 
@@ -62,7 +65,12 @@ Report assets: `tools/schema_graph_mpl.py` (Q1), `tools/framework_figure.py` (Q4
 `tools/report_charts.py` (reads `artifacts/metrics.json`). Slides:
 `report_build/build_slides.py` (python-pptx) → `Asg2_413551034.pptx`; exported to PDF/PNG via
 **PowerPoint COM** in this env (no Node, so no pptxgenjs; no LibreOffice, so the skill's
-`soffice.py` shim fails on Windows — it uses `AF_UNIX`).
+`soffice.py` shim fails on Windows — it uses `AF_UNIX`). Building the deck needs `python-pptx`
+and `Pillow` (NOT in `requirements.txt`, since they are not needed to reproduce the model —
+`pip install python-pptx Pillow` first). Each slide carries a **Traditional-Chinese speaker
+script** in its notes; the same script is also at `report_build/speaker_script_zh.md` (per-slide
+timing, ~19 min for the 16–20 min video). PDF re-export after editing the deck:
+`PowerPoint.Application` COM → `SaveAs(pdf, 32)` (see the command used in git history).
 
 ## 4. Code map (`src/`)
 
@@ -106,11 +114,13 @@ This is reported honestly — the rubric rewards analysis and penalizes hallucin
 1. **Re-run `run.py predict` near the Nov 21 deadline** with fresh data (download through 11-21).
    Right now data only exists to ~11-10, so `effective_predict_time` uses the last data midnight as
    a proxy for the real test-week cutoff. This is the single most important remaining step.
-2. Replace `github.com/<your-public-repo>` on slide 1 (`report_build/build_slides.py`) and in
-   `README.md` with the real repo URL, then rebuild the deck.
+2. ~~Replace the repo-URL placeholder on slide 1 and in `README.md`~~ — **DONE** (2026-11-14):
+   the real URL is filled in both, and the deck + PDF were rebuilt.
 3. Push `main` to `origin` (github.com/CH-Joshua-Hsiao/NYCU-BigDataAnalytics) — **only when the user
-   asks**; pushing publishes externally.
-4. The user records the video themselves (AI video = 0); each slide has speaker notes.
+   asks**; pushing publishes externally. (Pushed through 2026-11-14; push again after step 1's rerun.)
+4. The user records the video themselves (AI video = 0); each slide has a Chinese speaker script in
+   its notes (also `report_build/speaker_script_zh.md`). The user must still confirm the repo is
+   **public** and upload `output_413551034.csv` + `Asg2_413551034.pdf` + `Asg2_413551034.mp4` to E3.
 5. Optional model ideas if asked to improve the *Score* (remember it is 0% of the grade):
    per-activity models tuned separately; longer history for 90-day features; calibrated thresholds
    on a rolling window; a proper RelBench temporal-sampling GNN (the current graph under-performs).
@@ -121,6 +131,7 @@ This is reported honestly — the rubric rewards analysis and penalizes hallucin
 - The downloaded Graphviz `dot.exe` is blocked by the sandbox (external binary) → schema graph is
   rendered with matplotlib (`tools/schema_graph_mpl.py`); `schema_graph.py` still emits a `.dot`.
 - Windows console is cp950 → avoid non-ASCII in stdout; `run.py` reconfigures stdout to UTF-8.
-- `.pptx` is ignored by the repo-root `.gitignore` (`*.pptx`); the PDF deliverable and
-  `build_slides.py` are committed, so the deck is reproducible.
+- The deck `report_build/Asg2_413551034.pptx` is git-ignored (so is the duplicate PDF under
+  `report_build/`); the **root** `Asg2_413551034.pdf` deliverable and `build_slides.py` are
+  committed, so the deck is reproducible. To edit slides, rebuild the `.pptx` locally.
 - Student ID is **413551034** (submission filenames `output_413551034.csv`, `Asg2_413551034.{pdf,mp4}`).
