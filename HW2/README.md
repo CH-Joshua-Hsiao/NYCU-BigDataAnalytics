@@ -1,5 +1,7 @@
 # Predicting GitHub User Activity (Big Data Analytics, Fall 2026 — Assignment 2)
 
+Repository: <https://github.com/CH-Joshua-Hsiao/NYCU-BigDataAnalytics/tree/main/HW2>
+
 Predict, for each test user, which of 6 activities they will perform on GitHub during the test
 week **2026/11/22 00:00 – 11/29 00:00 (Taiwan time)**:
 `open_pr, open_issue, issue_comment, pr_review, pr_review_comment, push`.

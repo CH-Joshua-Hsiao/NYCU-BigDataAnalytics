@@ -131,10 +131,11 @@ para(tf, "Relational + temporal modeling over 8 foreign-key-linked tables", size
 tf = tb(s, 0.9, 5.1, 11.5, 1.6)
 para(tf, "Assignment 2  ·  Big Data Analytics Techniques and Applications, Fall 2026", size=15, color=RGBColor(0x9D, 0xB4, 0xD0), first=True, space_after=10)
 para(tf, [("Student ID  ", {"color": RGBColor(0x9D,0xB4,0xD0), "size": 15}), (SID, {"color": WHITE, "size": 15, "bold": True}),
-          ("      Code  ", {"color": RGBColor(0x9D,0xB4,0xD0), "size": 15}), ("github.com/<your-public-repo>", {"color": WHITE, "size": 15})], space_after=0)
-notes(s, "Title slide. Introduce the task: predict which of 6 GitHub activities each test user will do "
-         "in the week 2026/11/22-11/29. Data is 8 relational tables from GH Archive. "
-         "REMEMBER to replace <your-public-repo> with your actual GitHub repository URL.")
+          ("      Code  ", {"color": RGBColor(0x9D,0xB4,0xD0), "size": 15}), ("github.com/CH-Joshua-Hsiao/NYCU-BigDataAnalytics/tree/main/HW2", {"color": WHITE, "size": 15})], space_after=0)
+notes(s, "〔約 1:00〕大家好,我是學號 413551034。這次作業二的題目是預測 GitHub 使用者的活動。\n"
+         "我們要對測試集裡的 4,465 位使用者,預測他們在 2026/11/22–11/29 這一週(台灣時間)會不會做出六種 GitHub 活動。\n"
+         "資料來源是 GH Archive 的每小時事件,經過官方 preprocess.py 轉成 8 張用外鍵互相連結的關聯式資料表。\n"
+         "程式都放在這個公開的 GitHub repo(github.com/CH-Joshua-Hsiao/NYCU-BigDataAnalytics)。接下來先說明題目、資料跟評分方式。")
 
 # ---------------------------------------------------------------- Slide 2: task & data
 s = slide()
@@ -157,9 +158,12 @@ for a, d in [("open_pr", "open a pull request"), ("open_issue", "open an issue (
              ("pr_review_comment", "comment on PR code lines"), ("push", "push commits to a branch/tag")]:
     para(tf, [(a, {"bold": True, "color": BLUE, "font": "Consolas", "size": 13}), (f"  —  {d}", {"size": 13})], space_after=7)
 footer(s, 2)
-notes(s, "Frame the problem. Six binary targets per user. Stress the two hard parts the questions ask about: "
-         "cross-table relationships (Q2) and time (Q3). The metric averages macro- and micro-F1, so rare "
-         "activities matter (macro) but so does overall volume (micro).")
+notes(s, "〔約 2:00|累計 3:00〕先看題目:對每一位測試使用者,輸出六個 0/1,代表這六種活動——開 PR、開 issue、"
+         "在 issue/PR 留言、送出 PR review、在程式碼行上留 review comment、push commit。右邊卡片就是六個目標。\n"
+         "資料:GH Archive 每小時事件,官方腳本轉成 8 張匿名化、用外鍵連結的表,ID 雜湊、文字遮蔽。\n"
+         "規則三重點:只能用這 8 張表;依時間切分訓練/驗證;在時間點 t 預測時只能用 t 之前看得到的資料列。\n"
+         "評分 Score = (macro-F1 + micro-F1) / 2——macro 讓少見活動也有份量,micro 反映整體量,兩個都要顧。\n"
+         "核心難點就是題目要回答的兩件事:跨表關聯(Q2)與時間(Q3)。")
 
 # ---------------------------------------------------------------- Slide 3: Q1 schema
 s = slide()
@@ -179,9 +183,12 @@ para(tf, [("Training weeks: ", {"bold": True}), ("Oct 13 / 20 / 27 cutoffs", {})
 para(tf, [("Validation: ", {"bold": True}), ("Nov 3 → Nov 10", {})], size=13.5, space_after=3)
 para(tf, [("Prediction: ", {"bold": True}), ("Nov 22 → Nov 29 (Taiwan)", {})], size=13.5, space_after=0)
 footer(s, 3)
-notes(s, "Walk through the schema. Users and Repositories are the hubs every event table points to; "
-         "PullRequests and Issues are referenced by reviews and comments. Give the exact data window you "
-         "trained on. Note: data only exists up to ~now, so re-run near the deadline for the real test-week features.")
+notes(s, "〔約 2:30|累計 5:30〕這頁回答 Q1,畫出 8 張表的 schema 關聯圖。\n"
+         "每張表是一個方塊列出欄位;金色 PK 是主鍵,綠色 FK 是外鍵,每個外鍵用箭頭指向它參照的主鍵。\n"
+         "Users 跟 Repositories 是兩個樞紐,幾乎所有事件表都指向它們;PullRequests、Issues 又被 reviews/comments 參照。\n"
+         "左邊標了每張表的可見時間 row-time(多為 first_seen_at,留言/push 用 created_at);算 t 時刻特徵時只用 row-time < t 的列,避免偷看未來。\n"
+         "資料時間區間:原始抓 10/04–11/10;訓練切點 10/13、10/20、10/27;驗證週 11/03–11/10;預測週 11/22–11/29。\n"
+         "補充:資料目前只到差不多現在,最終版本我會在截止前重新下載到 11/21 再重跑,讓特徵對齊真正的測試週。")
 
 # ---------------------------------------------------------------- Slide 4: Q2 approach
 s = slide()
@@ -208,9 +215,11 @@ for num, col, head, body in items:
     para(tf, body, size=14.5, color=INK, space_after=0)
     y += 1.5
 footer(s, 4)
-notes(s, "Explain the three ways you brought cross-table structure into the model. (1) and (2) are features "
-         "for the trees; (3) is a graph neural network over the foreign-key graph, in the spirit of RelBench / "
-         "relational deep learning from Lecture 5. Next slide: do they actually help?")
+notes(s, "〔約 2:00|累計 7:30〕Q2 問怎麼利用跨表關聯,我用了三個做法。\n"
+         "① 外鍵 join 特徵:把 User–PR–Review–Issue–Comment 串起來,算出你的工作收到多少 review/留言、有多少不同的人 review 你或跟你合作、你給別人送了多少 review、以及參與的 repo/組織廣度。\n"
+         "② repo 鄰域聚合:對使用者碰過的 repo,把這些 repo 最近的活動量與其他活躍使用者人數聚合起來,代表社群的動能。\n"
+         "③ 時間感知的異質 GNN(RelBench/關聯式深度學習):使用者–repo 的圖,6 種外鍵衍生的邊,訊息從使用者傳到 repo、再回到兩跳外的協作者。\n"
+         "前兩個是給樹模型的特徵,第三個是圖神經網路。下一頁看它們到底有沒有幫助。")
 
 # ---------------------------------------------------------------- Slide 5: Q2 results
 s = slide()
@@ -234,11 +243,10 @@ para(tf, "Next-week activity is driven mostly by a user's own recent history (st
         "loses the per-user signal. Relational deep learning helps when cross-entity interaction is dense; "
         "here, time dominates — a useful finding about when RDL pays off.", size=15, space_after=0)
 footer(s, 5)
-notes(s, "Be upfront: the relational enhancements did not beat the simpler temporal model here. The GBDT "
-         "with relational features removed is essentially tied; the GNN's graph message passing actually hurts "
-         "because the bipartite user-repo graph is sparse and over-smooths. The honest analysis — relational "
-         "structure is weakly predictive for THIS task — is itself a result. Mention you verified this with the "
-         "AUC per activity (around 0.5 once message passing is added).")
+notes(s, "〔約 2:00|累計 9:30〕誠實報告:在這個稀疏群體上,關聯結構幫助很小。\n"
+         "① GBDT 拿掉關聯特徵,Score 33.1→33.6,幾乎沒差。② 加上 GNN 訊息傳遞反而掉九分多,節點特徵 30.3→圖 20.9。③ 所以最好的模型還是 GBDT(時間+關聯特徵)。\n"
+         "為什麼?下一週的活動主要由使用者自己最近的行為決定(很強的時間自相關);使用者–repo 的圖又很稀疏,平均式聚合把訊號抹平,GNN 反而失去個別訊號。\n"
+         "RDL 通常在跨實體互動很密集時才發威;這題是時間主導。這本身就是有價值的發現。我也用每活動 AUC 驗證:一加訊息傳遞,AUC 大約掉到 0.5。")
 
 # ---------------------------------------------------------------- Slide 6: Q3 approach
 s = slide()
@@ -274,9 +282,11 @@ tf = tb(s, 1.6, ty + 0.06, 5.4, 0.3); para(tf, "features: all history with row-t
 tf = tb(s, 7.15, ty + 0.06, 4.0, 0.3); para(tf, "labels: next 7 days", size=11, color=RED, first=True, space_after=0)
 tf = tb(s, 6.85, ty - 0.46, 1.2, 0.3); para(tf, "t", size=12, color=RED, bold=True, first=True, space_after=0)
 footer(s, 6)
-notes(s, "Temporal modeling is the heart of the method. Explain the three windows idea, then the leakage rules "
-         "(these matter for a fair, reproducible model and the assignment requires them). The timeline at the "
-         "bottom shows the split: everything before t is features, the next 7 days are the labels.")
+notes(s, "〔約 2:30|累計 12:00〕Q3 時間建模,是這套方法的核心,一樣三個重點。\n"
+         "① 多尺度時間特徵:對每種活動分別算 1/7/14/30/90 天窗口的次數、距上次多久(recency)、幾天活躍、7 天動能/比率;其中包含很強的「參考上一週」訊號。\n"
+         "② 嚴格防洩漏:只有 row-time < t 的列看得到;不用 created_at/submitted_at 判斷可見性(那些列晚點才進來);不用事後才知道的欄位(merged_at、closed_at、state_reason、dismissed_at)。\n"
+         "③ 把時間編碼進 GNN 的邊:每條邊帶年齡,鄰居訊息以 exp(−age/τ) 加權,最近的互動比舊的更重要。\n"
+         "下方時間軸:t 之前的所有歷史當特徵,接下來 7 天當標籤。")
 
 # ---------------------------------------------------------------- Slide 7: Q3 results
 s = slide()
@@ -290,9 +300,10 @@ para(tf, [("Removing temporal features: 33.1 → 29.0 Score (−4.1) — the lar
           ("Per activity, regular behaviours (open_issue, pr_review) are easier than bursty ones "
            "(push, pr_review_comment).", {})], first=True, size=14, space_after=0)
 footer(s, 7)
-notes(s, "Left: the feature-group ablation — temporal is by far the most important. Right: per-activity F1 "
-         "from the GBDT. Point out that the easy activities are the regular, habitual ones, while pushes and "
-         "line-level review comments are bursty and hard. This directly answers 'how temporal modeling helped'.")
+notes(s, "〔約 2:00|累計 14:00〕用兩張圖說明時間建模的效果。\n"
+         "左圖是特徵群消融:把時間特徵拿掉,Score 33.1→29.0,掉 4.1 分,是所有特徵群裡掉最多的;對照一下,光是「照抄上一週」就有 29.3 分,可見時間資訊的份量。\n"
+         "右圖是 GBDT 各活動的 F1:規律型行為(open_issue、pr_review)好預測;爆發型行為(push、程式碼行 review comment)比較難,因為零星不規律。\n"
+         "所以這頁直接回答『時間建模帶來什麼幫助』——它是這任務最主要的訊號來源。")
 
 # ---------------------------------------------------------------- Slide 8: Q4 framework
 s = slide()
@@ -302,9 +313,9 @@ w8, h8 = picture(s, ART / "framework.png", 0, 1.95, h=4.95)
 # center horizontally
 s.shapes[-1].left = Inches((13.333 - w8) / 2)
 footer(s, 8)
-notes(s, "The one-slide overview of the whole method. Trace the arrows left to right. The three parallel "
-         "branches (temporal features, relational features, GNN) all feed the models; the leakage gate sits "
-         "on the tables so every branch only sees the past.")
+notes(s, "〔約 1:30|累計 15:30〕Q4 要說明整體架構,這張是一頁總覽。\n"
+         "從左到右:GH Archive 每小時事件 → preprocess.py → 8 張關聯式資料表 → 三條平行分支(時間特徵、關聯特徵、時間感知 GNN)都餵進模型。\n"
+         "注意中間的 leakage gate,它卡在資料表這一層,所以每條分支看到的都只有過去的資料。最後經模型與門檻調整,產出提交檔。下一頁把每一步拆開講。")
 
 # ---------------------------------------------------------------- Slide 9: Q4 pipeline detail
 s = slide()
@@ -325,9 +336,13 @@ for i, (head, body) in enumerate(steps, 1):
               (body, {"size": 14})], first=True, space_after=0)
     y += 0.8
 footer(s, 9)
-notes(s, "Narrate each step. Emphasise the leakage-safe framing (step 2) and the per-activity threshold tuning "
-         "(step 4) since it directly targets the F1 metric. Stress reproducibility (step 6) — the TAs will "
-         "re-run preprocess.py and must reproduce your output, which the fixed seeds and pinned deps guarantee.")
+notes(s, "〔約 2:00|累計 17:30〕把流程拆成六步。\n"
+         "① 前處理:下載 GH Archive 每小時檔,跑官方 preprocess.py,得到 8 張匿名化表(各一個 Parquet)。\n"
+         "② 建立樣本:組「使用者+時間切點」的列,標籤=這人未來 7 天有沒有做各活動;只有 row-time < 切點 的列看得到。\n"
+         "③ 特徵表示:時間特徵 + 關聯特徵 + 時間感知的使用者–repo 圖。\n"
+         "④ 建模:每活動一個 LightGBM(共 6 個)+ 異質 GNN;每活動門檻在驗證週調到 F1 最大。\n"
+         "⑤ 驗證與預測:依時間切分,早週訓練、留一週驗證;最後重訓並預測測試週,輸出 output_413551034.csv。\n"
+         "⑥ 可重現:套件鎖版本、種子固定、資料區間記錄清楚,助教重跑 preprocess.py 即可重現輸出。")
 
 # ---------------------------------------------------------------- Slide 10: results & takeaways
 s = slide(NAVY)
@@ -346,10 +361,12 @@ tf = tb(s, 8.1, 6.35, 4.7, 0.5)
 para(tf, "output_413551034.csv — 4,465 users, passes the official format check.", size=12,
      color=RGBColor(0x9D,0xB4,0xD0), first=True, space_after=0)
 footer(s, 10)
-notes(s, "Close with the comparison chart and four takeaways. The submission is the GBDT model. Restate the "
-         "honest headline: temporal autocorrelation dominates this task; relational/graph modeling was explored "
-         "thoroughly but helps little here. Mention the output passes evaluate.py and the whole pipeline is "
-         "reproducible from the README. Remember to re-run near the deadline for fresh test-week data.")
+notes(s, "〔約 1:30|累計 19:00〕做個總結。左邊長條圖是各模型在驗證週上的比較。四個重點:\n"
+         "① 用時間+關聯特徵的 GBDT 是最好的模型,Score 33.1,也是我提交的版本。\n"
+         "② 時間特徵是最主要的訊號,拿掉它掉最多(−4.1)。\n"
+         "③ 在這稀疏群體上,關聯特徵與 GNN 訊息傳遞幫助很小,是時間在主導。\n"
+         "④ 全程嚴格時間切分與防洩漏,且完全可重現。\n"
+         "最後,output_413551034.csv 有 4,465 位使用者,通過官方格式檢查。以上是我的報告,謝謝。")
 
 prs.save(str(OUT))
 print("saved", OUT, "slides:", len(prs.slides._sldIdLst))
