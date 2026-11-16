@@ -71,6 +71,64 @@ bash tools/download_raw.sh 2026-10-04 2026-11-21
 
 ---
 
+## 2.5 這 8 張表怎麼互相關聯?(關聯 schema)
+
+這段是 Q2 的核心。每張表都有一個**主鍵(PK)**(自己的 id),再用**外鍵(FK)**指向別張表的主鍵——就像 Excel 用「某欄的值」去對照另一張表。
+
+### 兩張「核心實體」表(被其他表指著)
+| 表 | 主鍵 | 代表 |
+|---|---|---|
+| `Users` | `user_id` | 一個人(`is_cohort`=我們要預測的那群;`is_bot`=機器人) |
+| `Repositories` | `repo_id` | 一個專案倉庫(`org_id` 指向所屬組織) |
+
+### 六張「活動事件」表(每一列=一次行為,都指回 User 和 Repo)
+| 表 | 主鍵 | 「誰做的」FK→Users | 「在哪做的」FK→Repos | 其他重要 FK |
+|---|---|---|---|---|
+| `PullRequests` | `pr_id` | `author_id` | `repo_id` | `head_repo_id`→Repos、`merged_by_id`→Users⚠️ |
+| `Issues` | `issue_id` | `author_id` | `repo_id` | `assignee_id`→Users |
+| `IssueComments` | `comment_id` | `author_id` | `repo_id` | `issue_id`→Issues |
+| `PRReviews` | `review_id` | `reviewer_id` | `repo_id` | `pr_id`→PullRequests |
+| `PRReviewComments` | `comment_id` | `author_id` | `repo_id` | `pr_id`→PR、`pull_request_review_id`→PRReviews、`in_reply_to_id`→自己 |
+| `Pushes` | `push_id` | `user_id` | `repo_id` | — |
+
+### 關聯圖(箭頭 = 「指向…的主鍵」)
+
+```
+        ┌──────────────┐          ┌────────────────┐
+        │    Users     │          │  Repositories  │
+        │  (user_id)   │◄───┐ ┌──►│   (repo_id)    │
+        └──────────────┘    │ │   └────────────────┘
+            ▲  ▲  ▲         │ │        ▲  ▲  ▲  ▲  ▲
+    author_/ │  \reviewer   │ │  repo_id(每張事件表都有一個)
+            │  │   │   ┌────┘ └────┐  │  │  │  │  │
+     ┌──────┴┐ │ ┌─┴──────┐ ┌─────┴─┐ │ ┌┴────────┐
+     │  PRs  │ │ │ Issues │ │ Pushes│ │ │IssueCmts│
+     └───┬───┘ │ └───┬────┘ └───────┘ │ └────┬────┘
+   pr_id │     │     │ issue_id       │      │
+     ┌───┴─────┴─┐   └────────────────┘      │
+     │ PRReviews │◄──pull_request_review_id  │
+     └─────┬─────┘        ┌──────────────────┘
+           │         ┌────┴──────────────┐
+           └─pr_id──►│ PRReviewComments  │
+                     └───────────────────┘
+```
+
+**白話總結**:所有活動最後都收斂到「**某個 User 在某個 Repo 做了某件事**」。這就是我們能做「關聯特徵」的基礎——沿著 `repo_id` 可以找到「同一個 repo 裡的其他人/其他事件」,沿著 `author_id` 可以找到「同一個人在別處的行為」。
+
+### 每個「要預測的活動」對應哪張表(`config.ACTIVITY_SOURCE`)
+| 活動 | 來源表 | 「做這件事的人」欄位 | 動作時間 |
+|---|---|---|---|
+| `open_pr` | PullRequests | `author_id` | `created_at` |
+| `open_issue` | Issues(排除本身是 PR 的列) | `author_id` | `created_at` |
+| `issue_comment` | IssueComments | `author_id` | `created_at` |
+| `pr_review` | PRReviews | `reviewer_id` | `submitted_at` |
+| `pr_review_comment` | PRReviewComments | `author_id` | `created_at` |
+| `push` | Pushes | `user_id` | `created_at` |
+
+> ⚠️ 標了「未來欄位」的(如 `merged_by_id`、`merged_at`、`closed_at`、`state_reason`、`dismissed_at`)**只能用來算標籤或了解資料,絕不能當特徵**——因為那是事情發生「之後」才知道的,見 `config.FUTURE_COLUMNS`。
+
+---
+
 ## 3. 做「標籤(labels)」—— 答案長什麼樣
 
 **在做什麼**:要訓練模型,得先有「正確答案」給它學。標籤就是「某個使用者在某一週,這 6 種活動各做了沒有(0/1)」。
@@ -128,6 +186,37 @@ bash tools/download_raw.sh 2026-10-04 2026-11-21
 - **GNN**:想試「關聯結構(朋友/共用 repo)能不能幫忙預測」,也就是 Q2 想探討的 RDL(關聯深度學習)。
 
 `experiments.py` 會一次把這些方法全跑一遍、再做**消融實驗(ablation)**:故意把某類特徵拿掉,看分數掉多少,用來回答 Q2/Q3。
+
+### 🔬 訓練細節(以提交用的 GBDT 為例)
+
+這段把「第 5 步到底怎麼訓練」講清楚,對照 `src/dataset.py` 與 `src/gbdt.py`。
+
+**(1) 訓練資料怎麼來——「一週一個切點」**(`dataset.py`)
+- 選定幾個「週切點 `t`」。對每個 `t`:
+  - **特徵** = 用「`t` 之前看得到的資料」算(第 4 步,嚴格不洩漏)。
+  - **標籤** = 看「`[t, t+7天)` 這一週」該使用者各活動有沒有做。
+- 把**較早的 3 週**疊起來當**訓練集**,**較晚的 1 週**當**驗證集**。
+  - 例:訓練切點 `10-13 / 10-20 / 10-27`,驗證週 `11-03~11-10`。
+- 這就是「**按時間切,不隨機切**」——驗證週永遠在訓練週「之後」,模擬真實情況(用過去預測未來)。隨機切會把未來資料混進訓練,分數會假性變高。
+
+**(2) 模型本體——6 個獨立的 LightGBM**(`gbdt.py`)
+- 6 個活動**各訓練一個二元分類器**(「會做 / 不會做」),彼此不干擾。
+- LightGBM 是「梯度提升決策樹」:疊很多棵小決策樹,每棵修正前面的錯誤。主要參數(`DEFAULT_PARAMS`):
+  - `n_estimators=400`(400 棵樹)、`learning_rate=0.03`(學慢一點比較穩)、`num_leaves=63`(每棵樹的複雜度)。
+  - `subsample=0.8`、`colsample_bytree=0.8`(每次只抽部分資料/欄位,防過擬合)、`reg_lambda=1.0`(正則化)。
+  - `random_state=42` + `deterministic=True`:**固定隨機種子,保證 TA 重跑結果一樣**(可重現是這份作業的硬要求)。
+- 如果某活動在訓練週裡「從沒出現過」(全是 0),就跳過、直接預測 0。
+
+**(3) 門檻調校——把機率變成 0/1**
+- 模型輸出的是「機率」(例如 0.37),要變成 0 或 1 得定一個**門檻**。
+- 這裡**每個活動各自找最佳門檻**:在驗證週上掃一遍,挑「讓 F1 最高」的那個門檻(`best_threshold()`)。
+- 為什麼要各別調?因為 6 個活動的正例比例差很多(push 很多、pr_review_comment 很少),用同一個 0.5 門檻會吃虧。這一步直接對準評分指標 F1。
+
+**(4) 評分——跟官方一致**(`gbdt.score()`)
+- 自己實作了一份 `Score = (macro-F1 + micro-F1)/2`,和官方 `evaluate.py` 算法完全一致,這樣在本地驗證時看到的分數就能對應真實評分。
+
+**(5) 最終出題**(`predict.py`)
+- 確認方法後,用「到目前為止的全部資料」重訓一次,對測試週的 4,465 人輸出 0/1(見第 6 步)。
 
 ### 結果與誠實的結論(`artifacts/results.md`)
 驗證週的分數大致是:
