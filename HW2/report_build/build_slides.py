@@ -270,7 +270,7 @@ s = slide()
 badge(s, "Q2 · Findings", GOLD)
 title(s, "What the Relationships Contribute", "Honest result: on this sparse cohort, structure adds little")
 stats = [("≈ 0", BLUE, "GBDT without relational features", "33.1 → 33.6 Score (neutral)"),
-         ("−9.4", RED, "Adding GNN message passing", "node-MLP 30.3 → graph 20.9"),
+         ("−8.5", RED, "Adding GNN message passing", "node-MLP 30.3 → FK-graph 21.8"),
          ("win", GREEN, "Best model stays", "GBDT on temporal+relational features")]
 x = 0.6
 for big, col, head, sub in stats:
@@ -288,7 +288,7 @@ para(tf, "Next-week activity is driven mostly by a user's own recent history (st
         "here, time dominates — a useful finding about when RDL pays off.", size=15, space_after=0)
 footer(s, 6)
 notes(s, "〔約 1:45|累計 9:45〕誠實報告:在這個稀疏群體上,關聯結構幫助很小。\n"
-         "① GBDT 拿掉關聯特徵,Score 33.1→33.6,幾乎沒差。② 加上 GNN 訊息傳遞反而掉九分多,節點特徵 30.3→圖 20.9。③ 所以最好的模型還是 GBDT(時間+關聯特徵)。\n"
+         "① GBDT 拿掉關聯特徵,Score 33.1→33.6,幾乎沒差。② 加上 FK 圖的訊息傳遞反而掉約 8.5 分,節點特徵 30.3→FK 圖 21.8。③ 所以最好的模型還是 GBDT(時間+關聯特徵)。\n"
          "為什麼?下一週的活動主要由使用者自己最近的行為決定(很強的時間自相關);使用者–repo 的圖又很稀疏,平均式聚合把訊號抹平,GNN 反而失去個別訊號。\n"
          "RDL 通常在跨實體互動很密集時才發威;這題是時間主導。這本身就是有價值的發現。我也用每活動 AUC 驗證:一加訊息傳遞,AUC 大約掉到 0.5。")
 

@@ -9,6 +9,9 @@ report_build/template.pptx
 # keep only the copies at HW2 root, not the duplicates under report_build/
 report_build/Asg2_413551034.pdf
 report_build/Asg2_413551034.pptx
+# recorded video is a submission deliverable (uploaded to E3), too large for git
+report_build/Asg2_413551034.mp4
+*.mp4
 tools/graphviz/
 *.log
 artifacts/_*.log
