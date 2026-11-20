@@ -57,10 +57,10 @@ python -m venv .venv
 ```
 
 **1. Download the GH Archive hour files** (UTC date range; the window used for the submission is
-2026-10-04 … 2026-11-21):
+2026-10-04 … 2026-11-16):
 
 ```bash
-bash tools/download_raw.sh 2026-10-04 2026-11-21     # writes into raw/
+bash tools/download_raw.sh 2026-10-04 2026-11-16     # writes into raw/
 ```
 
 **2. Build the 8 tables with the official preprocessing script** (required; includes

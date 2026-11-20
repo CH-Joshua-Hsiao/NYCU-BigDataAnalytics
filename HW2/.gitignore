@@ -12,6 +12,8 @@ report_build/Asg2_413551034.pptx
 # recorded video is a submission deliverable (uploaded to E3), too large for git
 report_build/Asg2_413551034.mp4
 *.mp4
+# local backup of the pre-template custom deck (recoverable from git history anyway)
+report_build/_backup_custom_v13/
 tools/graphviz/
 *.log
 artifacts/_*.log
